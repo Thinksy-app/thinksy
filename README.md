@@ -1,3 +1,6 @@
+
+![DALL·E 2023-11-19 13 57 02 - A pixel art style Twitter banner image in 3_1 aspect ratio, featuring a multitude of lightbulbs with the phrase 'thinksy app'  The image should showca copy](https://github.com/Thinksy-app/thinksy/assets/5726457/29039d35-3bc0-48bb-909f-248fad26f7f9)
+
 # Thinksy - Self Hosted
 
 This is the open source version of [Thinksy](http://thinksy.app), A Slack App that compiles a concise list of what you’ve worked on for your next daily standup, weekly update, or performance review.

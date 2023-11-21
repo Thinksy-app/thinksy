@@ -1,0 +1,5 @@
+
+slack-bolt>=1.18.0<2
+slack-sdk>=3.23.0,<4
+openai>=0.28.1,<0.29
+tiktoken>=0.5.1,<0.6

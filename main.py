@@ -1,11 +1,13 @@
 import logging
 import os
+import json
 
-from slack_bolt import App, BoltContext
+from typing import Any, Dict, List
+from slack_bolt import App, Ack, BoltContext
 from slack_sdk.web import WebClient
 from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
+from slack_sdk.errors import SlackApiError
 
-#from app.bolt_listeners import before_authorize, register_listeners
 from app.env import (
     USE_SLACK_LANGUAGE,
     SLACK_APP_LOG_LEVEL,
@@ -17,7 +19,7 @@ from app.env import (
     OPENAI_DEPLOYMENT_ID,
     OPENAI_FUNCTION_CALL_MODULE_NAME,
 )
-#from app.slack_ops import build_home_tab
+from app.slack_ops import build_home_tab, build_channel_warning
 
 if __name__ == "__main__":
     from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -32,7 +34,6 @@ if __name__ == "__main__":
     )
     app.client.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=2))
 
-    #register_listeners(app)
 
     ##
     # START: SLACK APP ROUTES
@@ -40,133 +41,76 @@ if __name__ == "__main__":
 
     @app.event("app_home_opened")
     def update_home_tab(client, event, logger):
+        """
+        Publishes view when a user opens the home tab
+
+        Args:
+            ack (Ack): A function to acknowledge the action.
+            body (dict): The payload of the action request.
+
+        Returns:
+            None
+        """
         try:
-            # views.publish is the method that your app uses to push a view to the Home tab
             client.views_publish(
-            # the user that opened your app's app home
-            user_id=event["user"],
-            # the view object that appears in the app home
-            view={
-                "type": "home",
-                "blocks": [
-                    {
-                        "type": "header",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "💡 Run a Review"
-                        }
-                    },
-                    {
-                        "type": "divider"
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "User to review"
-                        },
-                        "accessory": {
-                            "type": "users_select",
-                            "placeholder": {
-                                "type": "plain_text",
-                                "text": "Select a user",
-                                "emoji": True
-                            },
-                            "action_id": "users_select-action"
-                        }
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "Channels to review"
-                        },
-                        "accessory": {
-                            "type": "multi_conversations_select",
-                            "placeholder": {
-                                "type": "plain_text",
-                                "text": "Select channels",
-                                "emoji": True
-                            },
-                            "action_id": "multi_conversations_select-action"
-                        }
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "📅 *Time Range:*"
-                        }
-                    },
-                    {
-                        "type": "context",
-                        "elements": [
-                            {
-                                "type": "plain_text",
-                                "text": "Default: Last week",
-                                "emoji": True
-                            }
-                        ]
-                    },
-                    {
-                        "type": "input",
-                        "element": {
-                            "type": "datepicker",
-                            "initial_date": "1990-04-28",
-                            "placeholder": {
-                                "type": "plain_text",
-                                "text": "Select a date",
-                                "emoji": True
-                            },
-                            "action_id": "datepicker-action"
-                        },
-                        "label": {
-                            "type": "plain_text",
-                            "text": "Start Date",
-                            "emoji": True
-                        }
-                    },
-                    {
-                        "type": "input",
-                        "element": {
-                            "type": "datepicker",
-                            "initial_date": "1990-04-28",
-                            "placeholder": {
-                                "type": "plain_text",
-                                "text": "Select a date",
-                                "emoji": True
-                            },
-                            "action_id": "datepicker-action"
-                        },
-                        "label": {
-                            "type": "plain_text",
-                            "text": "End Date",
-                            "emoji": True
-                        }
-                    },
-                    {
-                        "type": "actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "style": "primary",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Generate review",
-                                    "emoji": True
-                                },
-                                "value": "click_me_123",
-                                "action_id": "actionId-0"
-                            }
-                        ]
-                    }
-                ]
-
-            }
+                user_id=event["user"],
+                view=json.dumps(build_home_tab())
             )
-
         except Exception as e:
             logger.error(f"Error publishing home tab: {e}")
+
+    @app.action("generate-review-action")
+    def handle_generate_review(client, ack: Ack, body: Dict[str, Any], logger: logging.Logger) -> None:
+        """
+        Handles when a user clicks the "Generate Review" button.
+
+        Args:
+            ack (Ack): A function to acknowledge the action.
+            body (dict): The payload of the action request.
+
+        Returns:
+            None
+        """
+
+        ack()
+
+        user = body['user']['id']
+
+        try:
+            client.chat_postEphemeral(
+                channel=user,
+                text=":saluting_face: *On it, boss! Give me a minute or two to generate your report* :hourglass_flowing_sand:",
+                user=user,
+            )
+        except SlackApiError as e:
+            logger.error(f"Error sending ephemeral message: {e}")
+
+        selected_conversations = body["state"]["values"]["selected_conversations"]["review_multi_conversations_select-action"]["selected_conversations"]
+        start_date = body["state"]["values"]["selected_start_date"]["review_start_date_datepicker-action"]["selected_date"]
+        end_date = body["state"]["values"]["selected_end_date"]["review_end_date_datepicker-action"]["selected_date"]
+
+        if not selected_conversations:
+            try:
+                client.chat_postEphemeral(
+                    channel=user,
+                    text="Please select at least 1 channel before generating a report, please :)",
+                    user=user,
+                )
+            except SlackApiError as e:
+                logger.error(f"Error sending ephemeral message: {e}")
+
+
+        # try:
+        #     client.chat_postMessage(
+        #         channel=user,
+        #         text=generate_review(user, body, client, channels, start_date, end_date),
+        #         user=user,
+        #         unfurl_links=False
+        #     )
+        # except SlackApiError as e:
+        #     logger.error(f"Error sending review: {e}")
+
+
 
     @app.middleware
     def set_openai_api_key(context: BoltContext, next_):
@@ -180,10 +124,25 @@ if __name__ == "__main__":
         context["OPENAI_FUNCTION_CALL_MODULE_NAME"] = OPENAI_FUNCTION_CALL_MODULE_NAME
         next_()
 
+    @app.action("users_select-action")
+    @app.action("multi_conversations_select-action")
+    def handle_no_op_actions(ack: Ack, body: Dict[str, Any], logger: logging.Logger):
+        """
+        Acknowledges and logs the actions that don't need any further processing.
+
+        Args:
+            ack (Ack): A function to acknowledge the action.
+            body (Dict[str, Any]): The payload of the action request.
+            logger (logging.Logger): The logger object for logging.
+
+        Returns:
+            None
+        """
+
+        ack()
 
     ##
     # END: SLACK APP ROUTES
     ##
 
-    print("socket starting")
     SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()

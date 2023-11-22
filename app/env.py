@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 DEFAULT_SYSTEM_TEXT = """
-    You are combining multiple summaries across slack. Prioritize including content for all three categories within token limits. Consolidate bullet points as needed. Include hyperlinks using the format:
+    You are combining multiple summaries across slack. Prioritize including content for all three categories. Consolidate bullet points as needed. Include hyperlinks using the format:
 
     Categories:
     :handshake: *Collaboration:*

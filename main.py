@@ -20,6 +20,7 @@ from app.env import (
     OPENAI_FUNCTION_CALL_MODULE_NAME,
 )
 from app.slack_ops import build_home_tab, build_channel_warning
+from app.review_ops import generate_review
 
 if __name__ == "__main__":
     from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -54,13 +55,13 @@ if __name__ == "__main__":
         try:
             client.views_publish(
                 user_id=event["user"],
-                view=json.dumps(build_home_tab())
+                view=json.dumps(build_home_tab(event["user"]))
             )
         except Exception as e:
             logger.error(f"Error publishing home tab: {e}")
 
     @app.action("generate-review-action")
-    def handle_generate_review(client, ack: Ack, body: Dict[str, Any], logger: logging.Logger) -> None:
+    def handle_generate_review(client, ack: Ack, body: Dict[str, Any], context: BoltContext, logger: logging.Logger) -> None:
         """
         Handles when a user clicks the "Generate Review" button.
 
@@ -85,9 +86,10 @@ if __name__ == "__main__":
         except SlackApiError as e:
             logger.error(f"Error sending ephemeral message: {e}")
 
-        selected_conversations = body["state"]["values"]["selected_conversations"]["review_multi_conversations_select-action"]["selected_conversations"]
-        start_date = body["state"]["values"]["selected_start_date"]["review_start_date_datepicker-action"]["selected_date"]
-        end_date = body["state"]["values"]["selected_end_date"]["review_end_date_datepicker-action"]["selected_date"]
+        selected_conversations = body["view"]["state"]["values"]["selected_conversations"]["multi_conversations_select-action"]["selected_conversations"]
+        selected_user = body["view"]["state"]["values"]["selected_user"]["users_select-action"]["selected_user"]
+        start_date = body["view"]["state"]["values"]["selected_start_date"]["datepicker-action"]["selected_date"]
+        end_date = body["view"]["state"]["values"]["selected_end_date"]["datepicker-action"]["selected_date"]
 
         if not selected_conversations:
             try:
@@ -100,15 +102,15 @@ if __name__ == "__main__":
                 logger.error(f"Error sending ephemeral message: {e}")
 
 
-        # try:
-        #     client.chat_postMessage(
-        #         channel=user,
-        #         text=generate_review(user, body, client, channels, start_date, end_date),
-        #         user=user,
-        #         unfurl_links=False
-        #     )
-        # except SlackApiError as e:
-        #     logger.error(f"Error sending review: {e}")
+        try:
+            client.chat_postMessage(
+                channel=user,
+                text=json.dumps(generate_review(context, selected_user, client, selected_conversations, start_date, end_date)),
+                user=user,
+                unfurl_links=False
+            )
+        except SlackApiError as e:
+            logger.error(f"Error sending review: {e}")
 
 
 

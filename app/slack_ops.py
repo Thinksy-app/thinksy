@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from slack_sdk.errors import SlackApiError
 from slack_sdk import WebClient
 
-def build_home_tab() -> Dict[str, Any]:
+def build_home_tab(user) -> Dict[str, Any]:
 
     # Calculate 1 week ago from today
     one_week_ago = datetime.now() - timedelta(days=7)
@@ -28,6 +28,7 @@ def build_home_tab() -> Dict[str, Any]:
             },
             {
                 "type": "section",
+                "block_id":"selected_user",
                 "text": {
                     "type": "mrkdwn",
                     "text": "User to review"
@@ -40,13 +41,12 @@ def build_home_tab() -> Dict[str, Any]:
                         "emoji": True
                     },
                     "action_id": "users_select-action",
-                    "filter": {
-                        "exclude_bot_users": True
-                    }
+                    "initial_user": user
                 }
             },
             {
                 "type": "section",
+                "block_id": "selected_conversations",
                 "text": {
                     "type": "mrkdwn",
                     "text": "Channels to review"
@@ -72,7 +72,7 @@ def build_home_tab() -> Dict[str, Any]:
                         },
                         "text": {
                             "type": "plain_text",
-                            "text": "If I am not in any of these channels already I will add myself once this report is generated."
+                            "text": "If Thinksy is not already in any of these channels, Thinksy will be added once this report is generated."
                         },
                         "confirm": {
                             "type": "plain_text",
@@ -100,6 +100,7 @@ def build_home_tab() -> Dict[str, Any]:
             },
             {
                 "type": "input",
+                "block_id":"selected_start_date",
                 "element": {
                     "type": "datepicker",
                     "initial_date": start_date,
@@ -118,6 +119,7 @@ def build_home_tab() -> Dict[str, Any]:
             },
             {
                 "type": "input",
+                "block_id":"selected_end_date",
                 "element": {
                     "type": "datepicker",
                     "initial_date": end_date,
@@ -189,7 +191,7 @@ def filter_non_membership_and_join(client, logger, selected_conversations: list[
 
 def fetch_channel_messages(
     client: WebClient,
-    user: WebClient,
+    user: str,
     conversations: list[str],
     start_date: datetime,
     end_date: datetime,
@@ -207,33 +209,33 @@ def fetch_channel_messages(
         list: A list of message dictionaries.
     """
 
-    # result = []
-    # for conversation_id in conversations:
-    #     try:
-    #         response = web_client_user.conversations_history(
-    #             channel=channel_id,
-    #             limit=limit,
-    #             user=user.slack_enc_id,
-    #             latest=str(end_date.timestamp()) + "00000",
-    #             oldest=str(start_date.timestamp()) + "00000",
-    #         )
-    #         messages = response["messages"]
+    result = []
+    for conversation_id in conversations:
+        try:
+            response = client.conversations_history(
+                channel=conversation_id,
+                limit=limit,
+                user=user,
+                latest=str(end_date.timestamp()) + "00000",
+                oldest=str(start_date.timestamp()) + "00000",
+            )
+            messages = response["messages"]
 
-    #         for message in messages:
-    #             if message.get("user") == user.slack_enc_id:
-    #                 text = message.get("text", "")
-    #                 link = web_client.chat_getPermalink(
-    #                     channel=channel_id,
-    #                     message_ts=message.get("ts", "")
-    #                 )
-    #                 url = link.get("permalink", "")
-    #                 result.append({"text": text, "url": url})
+            for message in messages:
+                if message.get("user") ==user:
+                    text = message.get("text", "")
+                    link = client.chat_getPermalink(
+                        channel=conversation_id,
+                        message_ts=message.get("ts", "")
+                    )
+                    url = link.get("permalink", "")
+                    result.append({"text": text, "url": url})
 
 
-    #     except SlackApiError as exception:
-    #         print(exception)
+        except SlackApiError as exception:
+            print(exception)
 
-    # return result
+    return result
 
 def build_channel_warning(selected_conversations: list[str]):
 

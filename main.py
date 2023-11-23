@@ -105,7 +105,7 @@ if __name__ == "__main__":
         try:
             client.chat_postMessage(
                 channel=user,
-                text=json.dumps(generate_review(context, selected_user, client, selected_conversations, start_date, end_date)),
+                text=generate_review(context, selected_user, client, selected_conversations, start_date, end_date, logger),
                 user=user,
                 unfurl_links=False
             )

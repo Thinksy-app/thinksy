@@ -171,10 +171,8 @@ def filter_non_membership_and_join(client, logger, selected_conversations: list[
     conversations_bot_is_not_in: list[str] = []
 
     for conversation in selected_conversations:
-        print(conversation)
         try:
             response = client.conversations_info(channel=conversation)
-            print(response)
             if not response["channel"]["is_member"]:
                 conversations_bot_is_not_in.append(conversation)
         except SlackApiError as e:
@@ -185,7 +183,6 @@ def filter_non_membership_and_join(client, logger, selected_conversations: list[
             response = client.conversations_join(
                 channel=to_join_conversation,
             )
-            print(response)
         except SlackApiError as e:
             logger.error(f"Error showing warning: {e}")
 

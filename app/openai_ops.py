@@ -12,7 +12,7 @@ def make_synchronous_openai_call(
     openai_api_key: str,
     model: str,
     temperature: float,
-    messages: List[Dict[str, Union[str, Dict[str, str]]]],
+    messages,
     openai_api_type: str,
     openai_api_base: str,
     openai_api_version: str,

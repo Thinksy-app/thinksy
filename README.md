@@ -35,11 +35,18 @@ You want to create your internal Slack App to be used for your workspace.
 - Select the workspace where you'd like to create the app
 - Paste the manifest from manifest.yml
 - Go to **OAuth & Permissions** and get the user bot token
+<img width="737" alt="SCR-20231128-skdp-2" src="https://github.com/Thinksy-app/thinksy/assets/5726457/ac4a7cf1-dab7-4257-a9de-d1a01ca53364">
+
 - Go to **Basic Information** and create an App-Level Token
-- _Optional:_ Add Thinksy logo as the app icon
+<img width="551" alt="SCR-20231128-skrf-2" src="https://github.com/Thinksy-app/thinksy/assets/5726457/77f62eeb-4b2e-4739-b081-ae58cc3953f6">
+<img width="576" alt="SCR-20231128-sksn-2" src="https://github.com/Thinksy-app/thinksy/assets/5726457/f98c86be-9c03-405a-bf69-35898bef0c80">
+
+- _Optional:_ Add the [Thinksy logo](https://github.com/Thinksy-app/thinksy/blob/main/thinksy-logo.png) as the app icon
+<img width="720" alt="SCR-20231128-sloq-2" src="https://github.com/Thinksy-app/thinksy/assets/5726457/a6cc7e4e-4260-4be9-a26c-b758029fe6a2">
+
 
 ### 2️⃣ Prepare .env file
-* Save the ``.env`` template from here
+* Save the ``.env`` template [from here](https://github.com/Thinksy-app/thinksy/blob/main/.env-example)
 * Add your slack bot token, slack app token, and relevant OpenAI info
 
 
@@ -61,10 +68,14 @@ _Optional: You can also use the included `Dockerfile` if you'd like to deploy th
 
 Wahoo 👏 Now Thinksy is on your workspace, let's run it!
 
-1. Select your parameters for who to review and for what time range.
+### 1. Select your parameters for who to review and for what time range.
 
-2. Voilà, your review is ready!
+<img width="578" alt="SCR-20231128-srqh-2" src="https://github.com/Thinksy-app/thinksy/assets/5726457/709096d8-d565-4875-af35-5837b336ff8e">
 
+
+### 2. Voilà, your review is ready!
+
+<img width="1008" alt="SCR-20231128-ssuy" src="https://github.com/Thinksy-app/thinksy/assets/5726457/9030dafd-8bad-4918-9acb-0153414727d0">
 
 
 ## Questions?

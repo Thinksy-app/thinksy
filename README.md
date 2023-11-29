@@ -35,6 +35,8 @@ You want to create your internal Slack App to be used for your workspace.
 - Select the workspace where you'd like to create the app
 - Paste the manifest from manifest.yml
 - Go to **OAuth & Permissions** and get the user bot token
+- Go to **Basic Information** and create an App-Level Token
+- _Optional:_ Add Thinksy logo as the app icon
 
 ### 2️⃣ Prepare .env file
 * Save the ``.env`` template from here
@@ -47,7 +49,8 @@ Once you have your ``.env`` file prepared you can get this running!
 Simply run this docker image with your updated `.env` file
 
 ```
-docker run --env-file .env my_image
+docker pull entreeden/thinksy:v0.1
+docker run --env-file .env entreeden/thinksy:v0.1
 ```
 
 
@@ -56,11 +59,17 @@ _Optional: You can also use the included `Dockerfile` if you'd like to deploy th
 
 ## Using Thinksy
 
+Wahoo 👏 Now Thinksy is on your workspace, let's run it!
+
+1. Select your parameters for who to review and for what time range.
+
+2. Voilà, your review is ready!
 
 
 
+## Questions?
 
-
+We're continuing to grow and iterate Thinsky every day 🚀 If you have any feedback please feel free to reach out our CTO eden@thinsky.app or CEO calli@thinksy.app. Godspeed!
 
 
 ## License

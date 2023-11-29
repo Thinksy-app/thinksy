@@ -11,5 +11,3 @@ COPY app/*.py /app/app/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
 ENTRYPOINT python main.py
-
-# docker run --env-file .env <forked-repo>
